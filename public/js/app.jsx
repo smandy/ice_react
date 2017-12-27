@@ -1,7 +1,3 @@
-//var React = require('react');
-//var ReactDOM = require('react-dom');
-
-
 var id = new Ice.InitializationData();
 id.properties = Ice.createProperties();
 id.properties.setProperty("Ice.Default.Locator", "IceGrid/Locator:ws -h ritz -p 4063");
@@ -31,8 +27,6 @@ proxies.forEach( function (x) {
         console.log("Called with exception " + ex);
     } );
 });
-
-
 
 class Foo extends React.Component {
     constructor() {
