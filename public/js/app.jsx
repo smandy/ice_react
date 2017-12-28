@@ -3,7 +3,7 @@ id.properties = Ice.createProperties();
 id.properties.setProperty("Ice.Default.Locator", "IceGrid/Locator:ws -h ritz -p 4063");
 
 var communicator = Ice.initialize([], id);
-console.log("Communicator is " + communicator);
+//console.log("Communicator is " + communicator);
 var proxies = ["foo@SimpleApp", "foo@SimpleJavaApp", "foo@SimpleCppApp"];
 
 var tl = new MyListener();
@@ -65,7 +65,7 @@ class DataGrid extends React.Component {
     };
 
     componentDidMount() {
-        console.log("Datagrid mount");
+        //console.log("Datagrid mount");
         this.props.source.addListener(this);
     };
     
@@ -99,23 +99,22 @@ class DataGrid extends React.Component {
         });
         
         return (
-            <table><tbody>{rows}</tbody></table>
+            <table border="1"><tbody>{rows}</tbody></table>
         );
     };
 };
 
 var proxy = communicator.stringToProxy("plant:ws -h ritz -p 10666 -t 2000").ice_twoway();
 
-
 argo.TickerPlantPrx.checkedCast(proxy).then(
     function(prx) {
         setInterval( function() {
             prx.sayHello().then( function (s) {
-                //console.log("hello returned " + s );
+                // console.log("hello returned " + s );
+                // TODO - this isn't very reacty. Remove this junit stuff
                 $("#greeting").html( "<H1>" + "Got " + s + "</H1>" );
             } );
         } , 2000);
-        
         return communicator.createObjectAdapter("").then(
             function(adapter) {
                 var r = adapter.addWithUUID(tl);
