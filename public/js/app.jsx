@@ -6,6 +6,8 @@ var communicator = Ice.initialize([], id);
 console.log("Communicator is " + communicator);
 var proxies = ["foo@SimpleApp", "foo@SimpleJavaApp", "foo@SimpleCppApp"];
 
+var tl = new MyListener();
+
 class Foo extends React.Component {
     constructor() {
         super();
@@ -54,60 +56,37 @@ class Foo extends React.Component {
     };
 };
 
-class MyListener extends argo.TickListener {
-    state = {
-        listeners: []
-    };
-
-    addListener(listener) {
-        this.state.listeners.concat(listener);
-    };
-    
-    onImage( img, current) {
-        this.state.listeners.forEach( x => x.onImage(img, current));
-        // if (img.lenth>0) {
-        //     img[0].forEach( function( tick, idx, _) {
-        //         data[idx] = tick;
-        //         grid.invalidateRow(idx);
-        //     });
-        // };
-    };
-    
-    onTick(ticks, current) {
-        this.state.listeners.forEach( x => x.onTick(ticks,current));
-        //$("#symbol").html("<pre>" + ticks[0]['symbol'] + "</pre>");
-        //$("#bid").html("<pre>" + ticks[0]['bidPx'] + "</pre>");
-        //$("#ask").html("<pre>" + ticks[0]['askPx'] + "</pre>");
-        // for (i = 0;i<ticks.length;i++) {
-        //     data[i] = ticks[i];
-        //     grid.invalidateRow(i);
-        // }
-        // grid.render();
-    };
-}
-
+// TODO - tidy up the relationship. Have ticklistener cache image
+// maybe have it emit state events that can be added to the react component's state
+// Has to be a better way of doing it than this!
 class DataGrid extends React.Component {
     state = {
         data: []
     };
 
     componentDidMount() {
+        console.log("Datagrid mount");
         this.props.source.addListener(this);
     };
     
     onTick(ticks, current) {
+        //console.log("onTick");
         let newData = this.state.data.slice();
-        for (i = 0;i<ticks.length;i++) {
+        ticks.forEach( (tick, i) => {
+            ticks[i].key = "" + i;
             newData[i] = ticks[i];
+            //console.log(ticks[i]);
             //grid.invalidateRow(i);
-        }
+        } );
         this.setState( { data: newData });
     };
 
     onImage(img, current) {
+        //console.log("onImage");
         let newData = [];
         if (img.length>0) {
-            img[0].forEach( function(tick, idx, _) {
+            img[0].forEach( (tick, idx) => {
+                tick.key= "" + idx;
                 newData[idx] = tick;
             });
             this.setState( { data: newData});
@@ -116,18 +95,17 @@ class DataGrid extends React.Component {
 
     render() {
         const rows = this.state.data.map( x => {
-            return (<tr><td>{x.symbol}</td><td>{x.bidPx}</td><td>{x.askPx}</td></tr>);
+            return (<tr key={x.key}><td>{x.symbol}</td><td>{x.bidPx}</td><td>{x.askPx}</td></tr>);
         });
         
         return (
-            <table>{rows}</table>
+            <table><tbody>{rows}</tbody></table>
         );
     };
-}
+};
 
 var proxy = communicator.stringToProxy("plant:ws -h ritz -p 10666 -t 2000").ice_twoway();
 
-var tl = new MyListener();
 
 argo.TickerPlantPrx.checkedCast(proxy).then(
     function(prx) {
@@ -140,7 +118,7 @@ argo.TickerPlantPrx.checkedCast(proxy).then(
         
         return communicator.createObjectAdapter("").then(
             function(adapter) {
-                var r = adapter.addWithUUID();
+                var r = adapter.addWithUUID(tl);
                 proxy.ice_getCachedConnection().setAdapter(adapter);
                 var x3 = prx.subscribeWithIdent(r.ice_getIdentity());
             }
@@ -151,7 +129,8 @@ argo.TickerPlantPrx.checkedCast(proxy).then(
     } );
 
 ReactDOM.render( <Foo/>,  document.getElementById("content"));
-    
-ReactDOM.render( <DataGrid source={tl}/>,  document.getElementById("grid"));
+ReactDOM.render( <DataGrid source={tl} />,  document.getElementById("mygrid"));
+
+//ReactDOM.render( <DataGrid />,  document.getElementById("mygrid"));
 
 
