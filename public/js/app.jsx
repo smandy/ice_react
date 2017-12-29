@@ -19,25 +19,17 @@ class Foo extends React.Component {
 
     componentDidMount() {
         const outer = this;
-        proxies.forEach( function (x) {
-            var proxy = communicator.stringToProxy(x).ice_timeout(5000);
-            argo.FooPrx.checkedCast(proxy).then( prx => {
-                prx.doit().then( ret => {
-                            outer.setState( { responses :
-                                              outer.state.responses.concat( {
-                                                  response: ret,
-                                                  uid: uuid.v4()
-                                              }) });
-                        },
-                        function (ex) {
-                            console.log(ex);
-                        }
-                    );
-                },
-                function(ex) {
-                    console.log("Exception exception " + ex);
-                } );
-        });
+        proxies.forEach( p => {
+            var proxy = communicator.stringToProxy(p).ice_timeout(5000);
+            argo.FooPrx.checkedCast(proxy)
+                .then( prx => prx.doit() )
+                .then( ret => outer.setState( { responses :
+                                                outer.state.responses.concat( {
+                                                    response: ret,
+                                                    uid: uuid.v4()
+                                                }) }) )
+                .catch( err => alert(err) );
+        } );
     };
 
     render() {
