@@ -21,10 +21,8 @@ class Foo extends React.Component {
         const outer = this;
         proxies.forEach( function (x) {
             var proxy = communicator.stringToProxy(x).ice_timeout(5000);
-            var x2 = argo.FooPrx.checkedCast(proxy).then(
-                function(prx) {
-                    prx.doit().then(
-                        function (ret) {
+            argo.FooPrx.checkedCast(proxy).then( prx => {
+                prx.doit().then( ret => {
                             outer.setState( { responses :
                                               outer.state.responses.concat( {
                                                   response: ret,
@@ -37,7 +35,7 @@ class Foo extends React.Component {
                     );
                 },
                 function(ex) {
-                    console.log("Called with exception " + ex);
+                    console.log("Exception exception " + ex);
                 } );
         });
     };
